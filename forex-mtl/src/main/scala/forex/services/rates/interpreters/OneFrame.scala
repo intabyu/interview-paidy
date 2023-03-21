@@ -4,23 +4,26 @@ import cats.Applicative
 import cats.syntax.applicative._
 import cats.syntax.either._
 import forex.domain.{Price, Rate, Timestamp}
+import forex.infra.{OneFrameClient, OneFrameResponse}
 import forex.services.rates.Algebra
 import forex.services.rates.errors._
 
-class OneFrame[F[_]: Applicative] extends Algebra[F] {
+class OneFrame[F[_]: Applicative](client: OneFrameClient) extends Algebra[F] {
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
     // FIXME
+    println(client)
+    println(client.fetchPairs().unsafeRunSync())
     Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
   }
 
-  def wip(pair: Rate.Pair): F[Error Either Rate] = {
-    val cache = ???
-    val oneFrame = ???
-
-    // cache.get(pair).orElse(cache.update(oneFrame.fetch(pair)))
-    ???
-  }
+//  def wip(pair: Rate.Pair): F[Error Either Rate] = {
+//    val cache = ???
+//    val oneFrame = ???
+//
+//    // cache.get(pair).orElse(cache.update(oneFrame.fetch(pair)))
+//    ???
+//  }
 
   /**
    * (A) The service returns an exchange rate when provided with 2 supported currencies

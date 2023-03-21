@@ -10,8 +10,9 @@ import org.http4s.implicits._
 import org.http4s.server.middleware.{ AutoSlash, Timeout }
 
 class Module[F[_]: Concurrent: Timer](config: ApplicationConfig) {
+  private implicit val execCtx = scala.concurrent.ExecutionContext.global
 
-  private val ratesService: RatesService[F] = RatesServices.oneFrame[F]
+  private val ratesService: RatesService[F] = RatesServices.oneFrame[F](config)
 
   private val ratesProgram: RatesProgram[F] = RatesProgram[F](ratesService)
 
