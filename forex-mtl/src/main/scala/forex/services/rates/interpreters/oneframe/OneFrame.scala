@@ -3,6 +3,7 @@ package forex.services.rates.interpreters.oneframe
 import cats.Applicative
 import cats.syntax.applicative._
 import forex.domain.Rate
+import forex.infra.logger.ForexLogger
 import forex.services.rates.Algebra
 import forex.services.rates.errors._
 
@@ -29,14 +30,17 @@ class OneFrame[F[_]: Applicative](client: Client, cache: Cache, cacheDurationSec
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
     updateCache()
-    cache.get(pair).pure[F]
-    // Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
+    val result = cache.get(pair)
+    ForexLogger.get.debug(s"result: $result")
+    result.pure[F]
   }
 
   private def updateCache(): Unit = {
     val now = OffsetDateTime.now
 
-    if (now.toEpochSecond - lastUpdate.toEpochSecond >= cacheDurationSeconds) {
+    val cacheAge = now.toEpochSecond - lastUpdate.toEpochSecond
+    if (cacheAge >= cacheDurationSeconds) {
+      ForexLogger.get.debug(s"cache is $cacheAge seconds old")
       val pairs: Either[String, List[Pair]] = client.fetchPairs()
       pairs match {
         case Left(err) => println(s"ERROR: $err")

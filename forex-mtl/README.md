@@ -1,99 +1,88 @@
-# Paidy Take-Home Coding Exercises
+# Paidy forex exercise
 
-## What to expect?
-We understand that your time is valuable, and in anyone's busy schedule solving these exercises may constitute a fairly substantial chunk of time, so we really appreciate any effort you put in to helping us build a solid team.
+## Implementation details
 
-## What we are looking for?
-**Keep it simple**. Read the requirements and restrictions carefully and focus on solving the problem.
+To be able to support at least 10,000 successful requests per day with 1 API token,
+we query the One-Frame service between 2 and 5 minutes for all useful currency pairs and cache the results.
 
-**Treat it like production code**. That is, develop your software in the same way that you would for any code that is intended to be deployed to production. These may be toy exercises, but we really would like to get an idea of how you build code on a day-to-day basis.
+## Business constraint
 
-## How to submit?
-You can do this however you see fit - you can email us a tarball, a pointer to download your code from somewhere or just a link to a source control repository. Make sure your submission includes a small **README**, documenting any assumptions, simplifications and/or choices you made, as well as a short description of how to run the code and/or tests. Finally, to help us review your code, please split your commit history in sensible chunks (at least separate the initial provided code from your personal additions).
+- (A) | The service returns an exchange rate when provided with 2 supported currencies
+- (B) | The rate should not be older than 5 minutes
+- (C) | The service should support at least 10,000 successful requests per day with 1 API token
+- (D) | The One-Frame service supports a maximum of 1000 requests per day for any given authentication token.
+- (E) | The One-Frame API [...] One or more pairs per request are allowed.
 
-# A local proxy for Forex rates
+Thus:
 
-Build a local proxy for getting Currency Exchange Rates
+- (X) | 60 * 60 * 24 = 86400 seconds in a day 
+- (Z) | (D) & (X) => 1 query at most every 86,4 seconds to the One-Frame API
+- (B) & (Z) => `cache-duration-seconds should be set in production between 2 and 4 minutes` (to have some leeway)
+- (C) & (X) => 1 query on average to the proxy, every 8 seconds => `no optimization needed unless we have spikes`
 
-## Requirements
+## Getting started
 
-[Forex](forex-mtl) is a simple application that acts as a local proxy for getting exchange rates. 
-It's a service that can be consumed by other internal services to get the exchange rate between a set of currencies, 
-so they don't have to care about the specifics of third-party providers.
+Usual commands are available in the `Makefile`.
 
-We provide you with an initial scaffold for the application with some dummy interpretations/implementations. 
-For starters we would like you to try and understand the structure of the application, 
-so you can use this as the base to address the following use case:
-
-* The service returns an exchange rate when provided with 2 supported currencies 
-* The rate should not be older than 5 minutes
-* The service should support at least 10,000 successful requests per day with 1 API token
-
-Please note the following drawback of the [One-Frame service](https://hub.docker.com/r/paidyinc/one-frame): 
-
-> The One-Frame service supports a maximum of 1000 requests per day for any given authentication token. 
-
-## Guidance
-
-In practice, this should require the following points:
-
-1. Create a `live` interpreter for the `oneframe` service. This should consume the [One-Frame API](https://hub.docker.com/r/paidyinc/one-frame).
-
-2. Adapt the `rates` processes (if necessary) to make sure you cover the requirements of the use case, and work around possible limitations of the third-party provider.
-
-3. Make sure the service's own API gets updated to reflect the changes you made in point 1 & 2.
-
-Some notes:
-- Don't feel limited by the existing dependencies; you can include others.
-- The algebras/interfaces provided act as an example/starting point. Feel free to add to improve or built on it when needed.
-- The `rates` processes currently only use a single service. Don't feel limited, and do add others if you see fit.
-- It's great for downstream users of the service (your colleagues) if the api returns descriptive errors in case something goes wrong.
-- Feel free to fix any unsafe methods you might encounter.
-
-Some of the traits/specifics we are looking for using this exercise:
-
-- How can you navigate through an existing codebase;
-- How easily do you pick up concepts, techniques and/or libraries you might not have encountered/used before;
-- How do you work with third-party APIs that might not be (as) complete (as we would wish them to be);
-- How do you work around restrictions;
-- What design choices do you make;
-- How do you think beyond the happy path.
-
-### The One-Frame service
-
-#### How to run locally
-
-* Pull the docker image with `docker pull paidyinc/one-frame`
-* Run the service locally on port 8080 with `docker run -p 8080:8080 paidyinc/one-frame`
-
-#### Usage
-__API__
-
-The One-Frame API offers two different APIs, for this exercise please use the `GET /rates` one.
-
-`GET /rates?pair={currency_pair_0}&pair={currency_pair_1}&...pair={currency_pair_n}`
-
-pair: Required query parameter that is the concatenation of two different currency codes, e.g. `USDJPY`. One or more pairs per request are allowed.
-
-token: Header required for authentication. `10dc303535874aeccc86a8251e6992f5` is the only accepted value in the current implementation.
-
-__Example cURL request__
-```
-$ curl -H "token: 10dc303535874aeccc86a8251e6992f5" 'localhost:8080/rates?pair=USDJPY'
-
-[{"from":"USD","to":"JPY","bid":0.61,"ask":0.82,"price":0.71,"time_stamp":"2019-01-01T00:00:00.000"}]
+```shell
+# pull the one-frame docker image
+make setup
 ```
 
-## F.A.Q.
-1) _Is it OK to share your solutions publicly?_
-Yes, the questions are not prescriptive, the process and discussion around the code is the valuable part. You do the work, you own the code. Given we are asking you to give up your time, it is entirely reasonable for you to keep and use your solution as you see fit.
+```shell
+# inside terminal 0, start the one-frame service on local port 8081
+make run_one_frame
 
-2) _Should I do X?_
-For any value of X, it is up to you, we intentionally leave the problem a little open-ended and will leave it up to you to provide us with what you see as important. Just remember to keep it simple. If it's a feature that is going to take you a couple of days, it's not essential.
+# inside terminal 1, start the proxy
+make run
+```
 
-3) _Something is ambiguous, and I don't know what to do?_
-The first thing is: don't get stuck. We really don't want to trip you up intentionally, we are just attempting to see how you approach problems. That said, there are intentional ambiguities in the specifications, mainly to see how you fill in those gaps, and how you make design choices.
-If you really feel stuck, our first preference is for you to make a decision and document it with your submission - in this case there is really no wrong answer. If you feel it is not possible to do this, just send us an email and we will try to clarify or correct the question for you.
+```shell
+# ensure one-frame services runs correctly
+make test_curl_one_frame
 
-Good luck!
+# ensure the proxy runs correctly
+make test_curl_proxy
+```
 
+### Updating settings
+
+Default settings can be found at:
+- `src/main/resources/application.conf`
+- `src/main/resources/logback.xml`
+
+for production environment we should override most settings.
+
+## Possible Improvements
+
+- [ ] update code to generate all pairs and remove the query parameter from the config url unless we want to control this
+- [ ] test the domain logic: `src/main/scala/forex/services/rates/interpreters/oneframe` by mocking `src/main/scala/forex/infra/oneframe/SyncClient`
+- [ ] timestamp from one-frame response is expected to be parsed successfully, or it may not: `src/main/scala/forex/domain/Timestamp.scala`
+- [ ] improve the error handling, cf appendix A
+- [ ] have an integration test for the infra: `src/main/scala/forex/infra/oneframe`
+- [ ] document `src/main/scala/forex/services/rates/interpreters/oneframe` and `src/main/scala/forex/infra/oneframe`
+- [ ] one-frame client is synchronous and blocking, it should ideally be running in the background with a cron unless SLA does not require this
+- [ ] if High Availability is needed, we will need to pay attention to the frequency at which we call one-frame service and we will need to distribute the cache, e.g. using Redis and having a way to "elect" a single service to update the cache at each update
+
+## Appendix
+
+### Appendix A - Error on missing currency pair
+
+We should not log a stacktrace for a known error. 
+Also, we lose information, e.g. `Could not find: Pair(USD,CAD)` is present for the `DEBUG` log and then we have `null` for the error handled later on.
+
+We should, ideally, return a documented HTTP error code with an appropriate & explicit message, e.g. `Pair USD, CAD is not available`
+
+```shell
+# run the proxy **without** a given pair, e.g. (USD, CAD)
+
+# running the following query
+curl -X GET 'http://localhost:8080/rates?from=USD&to=CAD'
+# should return an error 500 and produce the following logs
+```
+
+> [...]
+> 15:26:16.147 [ioapp-compute-4] DEBUG forex - result: Left(OneFrameLookupFailed(Could not find: Pair(USD,CAD)))
+> 15:26:16.155 [ioapp-compute-4] ERROR org.http4s.server.service-errors - Error servicing request: GET /rates from 127.0.0.1
+> forex.programs.rates.errors$Error$RateLookupFailed: null
+> [...]

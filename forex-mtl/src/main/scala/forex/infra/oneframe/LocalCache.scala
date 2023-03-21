@@ -10,11 +10,10 @@ import scala.collection.immutable.HashMap
 class LocalCache extends Cache {
   // here we could use a 'val mutable.Hashmap' or a 'var Hashmap'
   // using var would facilitate ensuring to only have latest values
-  // TODO: protect with a lock to potentially avoid race conditions
   private var cache: Map[Rate.Pair, Rate] = HashMap.empty
 
   override def update(pairs: List[Pair]): Unit = {
-    ForexLogger.get.info("updating cache...")
+    ForexLogger.get.debug("updating cache...")
     cache = pairs.map { p =>
       val rate = Rate(
         pair = Rate.Pair(from = Currency.fromString(p.from), to = Currency.fromString(p.to)),
@@ -23,7 +22,7 @@ class LocalCache extends Cache {
       )
       (rate.pair, rate)
     }.toMap
-    ForexLogger.get.info("...cache updated")
+    ForexLogger.get.debug("...cache updated")
   }
 
   override def get(pair: Rate.Pair): Either[errors.Error, Rate] =
