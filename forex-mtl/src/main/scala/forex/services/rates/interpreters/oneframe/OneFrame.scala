@@ -2,29 +2,30 @@ package forex.services.rates.interpreters.oneframe
 
 import cats.Applicative
 import cats.syntax.applicative._
-import cats.syntax.either._
-import forex.domain.{Price, Rate, Timestamp}
+import forex.domain.Rate
 import forex.services.rates.Algebra
 import forex.services.rates.errors._
 
+import java.time.{OffsetDateTime, ZoneOffset}
+
 /**
- * (A) The service returns an exchange rate when provided with 2 supported currencies
- * (B) The rate should not be older than 5 minutes
- * (C) The service should support at least 10,000 successful requests per day with 1 API token
- *
- * (D) The One-Frame service supports a maximum of 1000 requests per day for any given authentication token.
- * (E) The One-Frame API [...] One or more pairs per request are allowed.
- *
- * - OneFrame service
- * - Cache service with expiration cache
- *
- * - 86400 seconds per day & (C) => 1 query on average, every 8 seconds
- * - 1440 minutes per day & (B) & (D) & (E) => 1 query every [2, 5[ minutes to the One-Frame API with all pairs
- */
+  * (A) The service returns an exchange rate when provided with 2 supported currencies
+  * (B) The rate should not be older than 5 minutes
+  * (C) The service should support at least 10,000 successful requests per day with 1 API token
+  *
+  * (D) The One-Frame service supports a maximum of 1000 requests per day for any given authentication token.
+  * (E) The One-Frame API [...] One or more pairs per request are allowed.
+  *
+  * - OneFrame service
+  * - Cache service with expiration cache
+  *
+  * - 86400 seconds per day & (C) => 1 query on average, every 8 seconds
+  * - 1440 minutes per day & (B) & (D) & (E) => 1 query every [2, 5[ minutes to the One-Frame API with all pairs
+  */
+class OneFrame[F[_]: Applicative](client: Client, cache: Cache, cacheDurationSeconds: Int) extends Algebra[F] {
 
-class OneFrame[F[_]: Applicative](client: Client, cache: Cache) extends Algebra[F] {
-
-  private var timestamp = 0
+  // arbitrary initial value long enough to force the first update
+  private var lastUpdate = OffsetDateTime.of(1970, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC)
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
     updateCache()
@@ -33,14 +34,15 @@ class OneFrame[F[_]: Applicative](client: Client, cache: Cache) extends Algebra[
   }
 
   private def updateCache(): Unit = {
-    // TODO: handle condition to update cache
+    val now = OffsetDateTime.now
 
-    val pairs: Either[String, List[Pair]] = client.fetchPairs()
-    pairs match {
-      case Left(err) => println(s"ERROR: $err")
-      case Right(p) => cache.update(p)
+    if (now.toEpochSecond - lastUpdate.toEpochSecond >= cacheDurationSeconds) {
+      val pairs: Either[String, List[Pair]] = client.fetchPairs()
+      pairs match {
+        case Left(err) => println(s"ERROR: $err")
+        case Right(p)  => cache.update(p)
+      }
+      lastUpdate = now
     }
-
   }
-
 }
