@@ -1,21 +1,11 @@
 package forex.services.rates.interpreters
 
 import cats.Applicative
-import cats.effect.{Blocker, _}
 import cats.syntax.applicative._
 import cats.syntax.either._
-import forex.config.OneFrameConfig
 import forex.domain.{Price, Rate, Timestamp}
 import forex.services.rates.Algebra
 import forex.services.rates.errors._
-import io.circe.generic.auto._
-import io.circe.parser.decode
-import org.http4s._
-import org.http4s.client._
-import org.http4s.implicits._
-
-import java.util.concurrent._
-import scala.concurrent.ExecutionContext.global
 
 /**
  * (A) The service returns an exchange rate when provided with 2 supported currencies
@@ -35,35 +25,14 @@ import scala.concurrent.ExecutionContext.global
 case class OneFramePair(from: String, to: String, bid: Float, ask: Float, price: Float, time_stamp: String)
 
 
-class OneFrameClient(config: OneFrameConfig) {
-  implicit val cs: ContextShift[IO] = IO.contextShift(global)
-  implicit val timer: Timer[IO] = IO.timer(global)
-
-  private val blockingPool = Executors.newFixedThreadPool(5)
-  private val blocker = Blocker.liftExecutorService(blockingPool)
-  private val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
-
-  private val uri = Uri.fromString(config.url).getOrElse(uri"")
-  private val headers = List(Header("token", config.token))
-
-  def fetchAllPairs(): Either[io.circe.Error, List[OneFramePair]] = {
-    val request: Request[IO] = Request[IO](
-      Method.GET,
-      uri,
-      HttpVersion.`HTTP/1.1`,
-      Headers(headers)
-    )
-    val query: IO[String] = httpClient.expect[String](request) // TODO: handle HTTP error
-    val result: String = query.unsafeRunSync()
-    val res: Either[io.circe.Error, List[OneFramePair]] = decode[List[OneFramePair]](result)
-    res
-  }
+trait OneFrameClient {
+  def fetchPairs(): Either[String, List[OneFramePair]]
 }
 
 class OneFrame[F[_]: Applicative](client: OneFrameClient) extends Algebra[F] {
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
-    val pairs = client.fetchAllPairs()
+    val pairs = client.fetchPairs()
     pairs match {
       case Left(err) => println(s"ERROR: $err")
       case Right(p) => p.foreach(println)

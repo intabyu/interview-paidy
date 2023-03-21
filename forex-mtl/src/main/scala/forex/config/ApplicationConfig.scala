@@ -13,4 +13,4 @@ case class HttpConfig(
     timeout: FiniteDuration
 )
 
-case class OneFrameConfig(url: String, token: String)
+case class OneFrameConfig(url: String, token: String, threadPool: Int = 1)
