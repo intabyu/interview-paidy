@@ -5,19 +5,7 @@ import cats.Show
 sealed trait Currency
 
 object Currency {
-
-  def fromString(s: String): Currency = s.toUpperCase match {
-    case "AUD" => AUD
-    case "CAD" => CAD
-    case "CHF" => CHF
-    case "EUR" => EUR
-    case "GBP" => GBP
-    case "NZD" => NZD
-    case "JPY" => JPY
-    case "SGD" => SGD
-    case "USD" => USD
-  }
-
+  
   case object AUD extends Currency
 
   case object CAD extends Currency
@@ -46,6 +34,18 @@ object Currency {
     case JPY => "JPY"
     case SGD => "SGD"
     case USD => "USD"
+  }
+
+  def fromString(s: String): Currency = s.toUpperCase match {
+    case "AUD" => AUD
+    case "CAD" => CAD
+    case "CHF" => CHF
+    case "EUR" => EUR
+    case "GBP" => GBP
+    case "NZD" => NZD
+    case "JPY" => JPY
+    case "SGD" => SGD
+    case "USD" => USD
   }
 
 }
