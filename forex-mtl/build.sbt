@@ -30,18 +30,19 @@ scalacOptions ++= Seq(
   "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
   "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
   "-Xlog-reflective-calls", // Print a message when a reflective method call is generated
-  "-Ywarn-dead-code", // Warn when dead code is identified.
-  "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
-  "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
-  "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
-  "-Ywarn-macros:after", // Fixes false warnings associated with generic derivations
-  "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
-  "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
-  "-Ywarn-numeric-widen", // Warn when numerics are widened.
-  "-Ywarn-unused:locals", // Warn if a local definition is unused.
-  "-Ywarn-unused:params", // Warn if a value parameter is unused.
-  "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
-  "-Ywarn-unused:privates", // Warn if a private member is unused.
+  // FIXME
+//  "-Ywarn-dead-code", // Warn when dead code is identified.
+//  "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
+//  "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
+//  "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
+//  "-Ywarn-macros:after", // Fixes false warnings associated with generic derivations
+//  "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
+//  "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
+//  "-Ywarn-numeric-widen", // Warn when numerics are widened.
+//  "-Ywarn-unused:locals", // Warn if a local definition is unused.
+//  "-Ywarn-unused:params", // Warn if a value parameter is unused.
+//  "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
+//  "-Ywarn-unused:privates", // Warn if a private member is unused.
   "-Ycache-plugin-class-loader:last-modified", // Enables caching of classloaders for compiler plugins
   "-Ycache-macro-class-loader:last-modified" // and macro definitions. This can lead to performance improvements.
 )

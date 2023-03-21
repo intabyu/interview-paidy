@@ -5,8 +5,13 @@ object Dependencies {
   object Versions {
     val cats                = "2.5.0"
     val catsEffect          = "2.4.1"
-    val fs2                 = "2.5.4"
-    val http4s              = "0.21.32"
+
+     val http4s              = "0.21.32"
+     val fs2                 = "2.5.4"
+
+//    val fs2                 = "3.6.1"
+//    val http4s              = "0.23.18" no longer uses BlazeServer but uses EmberServerBuilder
+
     val circe               = "0.13.0"
     val pureConfig          = "0.14.1"
 
