@@ -25,12 +25,12 @@ Thus:
 Usual commands are available in the `Makefile`.
 
 ```shell
-# pull the one-frame docker image
+# pull the One-Frame docker image
 make setup
 ```
 
 ```shell
-# inside terminal 0, start the one-frame service on local port 8081
+# inside terminal 0, start the One-Frame service on local port 8081
 make run_one_frame
 
 # inside terminal 1, start the proxy
@@ -38,7 +38,7 @@ make run
 ```
 
 ```shell
-# ensure one-frame services runs correctly
+# ensure One-Frame services runs correctly
 make test_curl_one_frame
 
 # ensure the proxy runs correctly
@@ -57,12 +57,13 @@ for production environment we should override most settings.
 
 - [ ] update code to generate all pairs and remove the query parameter from the config url unless we want to control this
 - [ ] test the domain logic: `src/main/scala/forex/services/rates/interpreters/oneframe` by mocking `src/main/scala/forex/infra/oneframe/SyncClient`
-- [ ] timestamp from one-frame response is expected to be parsed successfully, or it may not: `src/main/scala/forex/domain/Timestamp.scala`
+- [ ] handle HTTP errors when calling the One-Frame service & potentially have an exponential retry
+- [ ] timestamp from One-Frame response is expected to be parsed successfully, or it may not: `src/main/scala/forex/domain/Timestamp.scala`
 - [ ] improve the error handling, cf appendix A
 - [ ] have an integration test for the infra: `src/main/scala/forex/infra/oneframe`
 - [ ] document `src/main/scala/forex/services/rates/interpreters/oneframe` and `src/main/scala/forex/infra/oneframe`
-- [ ] one-frame client is synchronous and blocking, it should ideally be running in the background with a cron unless SLA does not require this
-- [ ] if High Availability is needed, we will need to pay attention to the frequency at which we call one-frame service and we will need to distribute the cache, e.g. using Redis and having a way to "elect" a single service to update the cache at each update
+- [ ] One-Frame client is synchronous and blocking, it should ideally be running in the background with a cron unless SLA does not require this
+- [ ] if High Availability is needed, we will need to pay attention to the frequency at which we call One-Frame service and we will need to distribute the cache, e.g. using Redis and having a way to "elect" a single service to update the cache at each update
 
 ## Appendix
 
