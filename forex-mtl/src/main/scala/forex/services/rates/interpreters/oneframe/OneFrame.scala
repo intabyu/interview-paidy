@@ -27,12 +27,20 @@ class OneFrame[F[_]: Applicative](client: Client, cache: Cache) extends Algebra[
   private var timestamp = 0
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
+    updateCache()
+    cache.get(pair).pure[F]
+    // Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
+  }
+
+  private def updateCache(): Unit = {
+    // TODO: handle condition to update cache
+
     val pairs: Either[String, List[Pair]] = client.fetchPairs()
     pairs match {
       case Left(err) => println(s"ERROR: $err")
-      case Right(p) => p.foreach(println)
+      case Right(p) => cache.update(p)
     }
 
-    Rate(pair, Price(BigDecimal(100)), Timestamp.now).asRight[Error].pure[F]
   }
+
 }

@@ -8,7 +8,8 @@ object Timestamp {
   def now: Timestamp = Timestamp(OffsetDateTime.now)
 
   def apply(s: String): Timestamp = {
-    ???
+    // TODO: should return an Either
+    Timestamp(OffsetDateTime.parse(s))
   }
 
 }
