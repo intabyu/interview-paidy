@@ -4,6 +4,7 @@ import cats.Applicative
 import cats.effect.{Blocker, _}
 import cats.syntax.applicative._
 import cats.syntax.either._
+import forex.config.OneFrameConfig
 import forex.domain.{Price, Rate, Timestamp}
 import forex.services.rates.Algebra
 import forex.services.rates.errors._
@@ -33,32 +34,36 @@ import scala.concurrent.ExecutionContext.global
 
 case class OneFramePair(from: String, to: String, bid: Float, ask: Float, price: Float, time_stamp: String)
 
-class OneFrame[F[_]: Applicative] extends Algebra[F] {
 
+class OneFrameClient(config: OneFrameConfig) {
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
   implicit val timer: Timer[IO] = IO.timer(global)
 
-  val blockingPool = Executors.newFixedThreadPool(5)
-  val blocker = Blocker.liftExecutorService(blockingPool)
-  val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
+  private val blockingPool = Executors.newFixedThreadPool(5)
+  private val blocker = Blocker.liftExecutorService(blockingPool)
+  private val httpClient: Client[IO] = JavaNetClientBuilder[IO](blocker).create
 
-  def fetchAllPairs(): Either[io.circe.Error,List[OneFramePair]] = {
-    val target = uri"http://localhost:8081/rates?pair=USDJPY" // TODO: use config
-    val headers = List(Header("token", "10dc303535874aeccc86a8251e6992f5")) // TODO: idem
+  private val uri = Uri.fromString(config.url).getOrElse(uri"")
+  private val headers = List(Header("token", config.token))
+
+  def fetchAllPairs(): Either[io.circe.Error, List[OneFramePair]] = {
     val request: Request[IO] = Request[IO](
       Method.GET,
-      target,
+      uri,
       HttpVersion.`HTTP/1.1`,
       Headers(headers)
     )
     val query: IO[String] = httpClient.expect[String](request) // TODO: handle HTTP error
     val result: String = query.unsafeRunSync()
-    val res: Either[io.circe.Error,List[OneFramePair]] = decode[List[OneFramePair]](result)
+    val res: Either[io.circe.Error, List[OneFramePair]] = decode[List[OneFramePair]](result)
     res
   }
+}
+
+class OneFrame[F[_]: Applicative](client: OneFrameClient) extends Algebra[F] {
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
-    val pairs = fetchAllPairs()
+    val pairs = client.fetchAllPairs()
     pairs match {
       case Left(err) => println(s"ERROR: $err")
       case Right(p) => p.foreach(println)
