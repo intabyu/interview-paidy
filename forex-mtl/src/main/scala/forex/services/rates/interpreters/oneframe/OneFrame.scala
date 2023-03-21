@@ -22,10 +22,12 @@ import forex.services.rates.errors._
  * - 1440 minutes per day & (B) & (D) & (E) => 1 query every [2, 5[ minutes to the One-Frame API with all pairs
  */
 
-class OneFrame[F[_]: Applicative](client: Client) extends Algebra[F] {
+class OneFrame[F[_]: Applicative](client: Client, cache: Cache) extends Algebra[F] {
+
+  private var timestamp = 0
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
-    val pairs = client.fetchPairs()
+    val pairs: Either[String, List[Pair]] = client.fetchPairs()
     pairs match {
       case Left(err) => println(s"ERROR: $err")
       case Right(p) => p.foreach(println)
