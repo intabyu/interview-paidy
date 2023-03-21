@@ -9,6 +9,5 @@ object Interpreters {
 
   def oneFrame[F[_]: Applicative](config: ApplicationConfig): Algebra[F] = {
     new OneFrame[F](new OneFrameClient(config.oneFrame))
-//    new OneFrame[F]()
   }
 }
