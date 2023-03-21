@@ -12,7 +12,7 @@ import java.time.{OffsetDateTime, ZoneOffset}
 
 class OneFrame[F[_]: Applicative](client: Client, cache: Cache, cacheDurationSeconds: Int) extends Algebra[F] {
 
-  // arbitrary initial value long enough to force the first update
+  // arbitrary initial value old enough to force the first update
   private var lastUpdate = OffsetDateTime.of(1970, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC)
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
