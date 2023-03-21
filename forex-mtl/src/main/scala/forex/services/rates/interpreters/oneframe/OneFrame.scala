@@ -1,4 +1,4 @@
-package forex.services.rates.interpreters
+package forex.services.rates.interpreters.oneframe
 
 import cats.Applicative
 import cats.syntax.applicative._
@@ -22,7 +22,7 @@ import forex.services.rates.errors._
  * - 1440 minutes per day & (B) & (D) & (E) => 1 query every [2, 5[ minutes to the One-Frame API with all pairs
  */
 
-class OneFrame[F[_]: Applicative](client: OneFrameClient) extends Algebra[F] {
+class OneFrame[F[_]: Applicative](client: Client) extends Algebra[F] {
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
     val pairs = client.fetchPairs()

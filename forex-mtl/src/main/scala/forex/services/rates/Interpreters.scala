@@ -2,13 +2,10 @@ package forex.services.rates
 
 import cats.Applicative
 import forex.config.ApplicationConfig
-import forex.infra.oneframe.OneFrameSyncClient
-import interpreters._
+import forex.services.rates.interpreters.oneframe.OneFrame
 
 object Interpreters {
-  def dummy[F[_]: Applicative]: Algebra[F] = new OneFrameDummy[F]()
-
   def oneFrame[F[_]: Applicative](config: ApplicationConfig): Algebra[F] = {
-    new OneFrame[F](new OneFrameSyncClient(config.oneFrame))
+    new OneFrame[F](new forex.infra.oneframe.SyncClient(config.oneFrame))
   }
 }
