@@ -22,13 +22,6 @@ import forex.services.rates.errors._
  * - 1440 minutes per day & (B) & (D) & (E) => 1 query every [2, 5[ minutes to the One-Frame API with all pairs
  */
 
-case class OneFramePair(from: String, to: String, bid: Float, ask: Float, price: Float, time_stamp: String)
-
-
-trait OneFrameClient {
-  def fetchPairs(): Either[String, List[OneFramePair]]
-}
-
 class OneFrame[F[_]: Applicative](client: OneFrameClient) extends Algebra[F] {
 
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
