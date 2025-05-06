@@ -11,7 +11,7 @@ class LocalCache extends Cache {
   // here we could use a 'val mutable.Hashmap' or a 'var Hashmap'
   // using var would facilitate ensuring to only have latest values
   private var cache: Map[Rate.Pair, Rate] = HashMap.empty
-
+  
   override def update(pairs: List[Pair]): Unit = {
     ForexLogger.get.debug("updating cache...")
     cache = pairs.map { p =>

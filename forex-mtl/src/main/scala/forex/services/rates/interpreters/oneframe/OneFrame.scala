@@ -15,7 +15,12 @@ class OneFrame[F[_]: Applicative](client: Client, cache: Cache, cacheDurationSec
   // arbitrary initial value old enough to force the first update
   private var lastUpdate = OffsetDateTime.of(1970, 1, 1, 1, 0, 0, 0, ZoneOffset.UTC)
 
+
+
   override def get(pair: Rate.Pair): F[Error Either Rate] = {
+    validate(pair) -> Left(...)
+
+
     updateCache()
     val result = cache.get(pair)
     ForexLogger.get.debug(s"result: $result")

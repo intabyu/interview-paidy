@@ -11,4 +11,5 @@ object Rate {
       from: Currency,
       to: Currency
   )
+
 }
